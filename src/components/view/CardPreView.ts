@@ -1,25 +1,26 @@
-import { ICardPreView, IEvents, ISuccessActions } from "../../types";
+import { IEvents, IProduct } from "../../types";
 import { CardCatalogView } from './CardCatalogView';
 import { ensureElement } from '../../utils/utils';
 
+interface ICardPreView extends Pick<IProduct, 'description'> {
+  inBasket: boolean;
+  isNull: number | null;
+}
 
 export class CardPreView extends CardCatalogView<ICardPreView> {
   protected _description: HTMLElement;
   protected _buyButton: HTMLButtonElement;
 
-  constructor (container: HTMLElement, events: IEvents, actions?: ISuccessActions) {
+  constructor (container: HTMLElement, events: IEvents) {
     super(container, events);
   
   this._description = ensureElement<HTMLElement>('.card__text', this.container);
   this._buyButton = ensureElement<HTMLButtonElement>('.card__button', this.container);
 
   this._buyButton.addEventListener('click', () => {
-    events.emit('card:buy', {title: this._title, price: this._price, image: this._image, category: this.category, description: this._description, id: this._id});
-    if (actions?.onClick) {
-        actions.onClick();
-      }
+    events.emit('card:buy', {id: this._id});
   });
-
+  
   }
 
   set description(description: string) {

@@ -1,11 +1,8 @@
-import { IEvents } from "../../types";
+import { IEvents, ICustomerData } from "../../types";
 import { ensureElement } from "../../utils/utils";
 import { Form } from "../common/FormView";
 
-export interface IContactsForm {
-  email: string;
-  phone: string;
-}
+interface IContactsForm extends Pick<ICustomerData, 'email' | 'phone'> {}
 
 export class FormContactsView extends  Form<IContactsForm> {
   protected _email: HTMLInputElement;

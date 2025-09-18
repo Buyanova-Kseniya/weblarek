@@ -1,15 +1,22 @@
 import { CardView } from '../common/CardView';
-import { ICardCatalogView, IEvents, ISuccessActions } from '../../types';
+import { IEvents, IProduct } from '../../types';
 import { ensureElement } from '../../utils/utils';
+
 
 type CategoryKey = keyof typeof categoryMap;
 const categoryMap = {
-    'софт-скил': 'card__category_soft',
-    'хард-скил': 'card__category_hard',
-    'кнопка': 'card__category_button',
-    'дополнительное': 'card__category_additional',
-    'другое': 'card__category_other',
-    };
+  'софт-скил': 'card__category_soft',
+  'хард-скил': 'card__category_hard',
+  'кнопка': 'card__category_button',
+  'дополнительное': 'card__category_additional',
+  'другое': 'card__category_other',
+};
+
+interface ISuccessActions {
+    onClick: () => void;
+}
+
+interface ICardCatalogView extends Pick<IProduct, 'image' | 'category'> {}
 
 export class CardCatalogView<T> extends CardView<T & ICardCatalogView> {
   protected _category: HTMLElement;
@@ -24,19 +31,6 @@ export class CardCatalogView<T> extends CardView<T & ICardCatalogView> {
     if (actions?.onClick) {
       this.container.addEventListener('click', actions.onClick);
     }
-
-    // this.container.addEventListener('click', (evt) => {
-      // this.events.emit('card:select', this);
-
-    //   const pricelessProduct = ensureElement<HTMLElement>('.card__price', evt.currentTarget as HTMLElement);
-    //   if (pricelessProduct.textContent === 'бесценно') return;
-    //   console.log(pricelessProduct);
-
-    // console.log(`Это Target: ` + evt.target);
-    // console.log(`Это currentTarget: ` + evt.currentTarget);
-    // console.log(`Это THIS: ` + this);
-    // console.log(`Это JSON.stringify(THIS): ` + JSON.stringify(this));
-    // })
   }
 
   set image(image: string) {
@@ -55,41 +49,3 @@ export class CardCatalogView<T> extends CardView<T & ICardCatalogView> {
     }
 
   }
-
-  
-  // set category(category: string) {
-  //     this._category.textContent = category;
-  //   }
-
-// render(data: Partial<ICard> | undefined) {
-//   if (!data) return this.container;
-  // const {category, ...others} = data;
-
-  // switch(data.category) {
-  //   case ('кнопка'):
-  //     this._category.classList.add('card__category_button')
-  //     break;
-  //   case ('хард-скил'):
-  //     this._category.classList.add('card__category_hard')
-  //     break;
-  //   case ('софт-скил'):
-  //     this._category.classList.add('card__category_soft')
-  //     break;
-  //   case ('другое'):
-  //     this._category.classList.add('card__category_other')
-  //     break;
-  //   case ('дополнительное'):
-  //     this._category.classList.add('card__category_additional')
-  //     break;
-  //   default: 
-  //     throw new Error('Ошибка чтения категории товаров data.category');
-  //   }
-
-//   return super.render(data);
-// }
-
-// перегрузка 
-// render(data?: Partial<ICard>): HTMLElement;
-//   render(data: Partial<ICard>): HTMLElement; 
-
-//   render(data: Partial<ICard> | undefined) {

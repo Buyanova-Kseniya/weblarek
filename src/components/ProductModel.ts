@@ -1,23 +1,30 @@
-import { ICard, IInputFormData, payment } from '../types'
+import { ICard, ICustomerData, IInputFormData, payment } from '../types'
 import { Model } from './base/Model';
 
-export interface IProductModel {
+interface IProductModel {
   catalog: ICard[];
   basket: string[];
   total: number;
-  order: IFormsData;
+  payment: Pick<ICustomerData, 'payment'>;
+  address: Pick<ICustomerData, 'address'>;
+  email: Pick<ICustomerData, 'email'>;
+  phone: Pick<ICustomerData, 'phone'>;
+  isBasketItem(id: string): void;
+  addItemBasket(id: string): void;
+  removeItemBasket(id: string): void;
+  getCatalogItem(id: string): ICard;
+  validateOrder(): boolean;
+  orderErrors(): string[];
+  contactsErrors(): string[];
+  reset(): void; 
 } 
 
-export interface IFormsData extends IInputFormData {
-  payment: payment;
-}
-
-export type FormErrors = Partial<Record<keyof IFormsData, string>>;
+export type FormErrors = Partial<Record<keyof ICustomerData, string>>;
 
 export class ProductModel extends Model<IProductModel> {
   protected _catalog: ICard[] = [];
   protected _basket: string[] = [];
-  protected order: IFormsData = { payment: null, address: '', email: '', phone: '' };
+  protected order: ICustomerData = { payment: null, address: '', email: '', phone: '' };
   protected formOrderErrors: FormErrors;
   protected formContactsErrors: FormErrors;
 
@@ -34,27 +41,13 @@ export class ProductModel extends Model<IProductModel> {
     return this._catalog.find(item => item.id === id);
   }
 
-  isBasketItem(id: string) {
-    return this._basket.some(itemId => itemId === id);
-  }
-
-  get total() {
-    const items = this._basket.map(id => {
-      return this._catalog.filter(card => {
-        return card.id === id;
-        })
-      })
-      const total = items.flat().reduce( (acc, item) => acc + item.price, 0 );
-      return total;
-  }
-
   addItemBasket(id: string) {
     if(!this._basket.includes(id)) {
       this._basket.push(id);
       this.events.emit('basket:changed');
     }
   }
-
+  
   removeItemBasket(id: string) {
     if(this._basket.includes(id)) {
       this._basket = this._basket.filter(item => item !== id);
@@ -62,7 +55,11 @@ export class ProductModel extends Model<IProductModel> {
     }
   }
 
-   resetBasket() {
+  isBasketItem(id: string) {
+    return this._basket.some(itemId => itemId === id);
+  }
+  
+  resetBasket() {
     this._basket = [];
     this.events.emit('basket:changed');
   }
@@ -70,7 +67,16 @@ export class ProductModel extends Model<IProductModel> {
   get basket() {
     return this._basket;
   }
-  
+
+  get total() {
+    const items = this._basket.map(id => {
+      return this._catalog.filter(card => {
+        return card.id === id;
+      })
+    });
+    const total = items.flat().reduce( (acc, item) => acc + item.price, 0 );
+    return total;
+  }
 
   get address() {
     return this.order.address;
@@ -80,7 +86,7 @@ export class ProductModel extends Model<IProductModel> {
     return this.order.email;
   }
 
-   get phone() {
+  get phone() {
     return this.order.phone;
   }
 
@@ -90,19 +96,16 @@ export class ProductModel extends Model<IProductModel> {
     }
   }
 
-   get contactsErrors() {
+  get contactsErrors() {
     if (this.formContactsErrors) {
       return Object.values(this.formContactsErrors);
     }
   }
 
   set payment(value: payment) {
-      this.order.payment = value;
-      this.events.emit('order:changed', this.order);
-      if (this.validateOrder()) {
-        // this.events.emit('order:ready', this.order);
-      }
-    }
+    this.order.payment = value;
+    this.events.emit('orderInput:changed', this.order);
+  }
 
   get payment() {
     return this.order.payment;
@@ -110,10 +113,7 @@ export class ProductModel extends Model<IProductModel> {
 
   setOrderField(field: keyof IInputFormData, value: string) {
     this.order[field] = value;
-    this.events.emit('order:changed', this.order);
-    if (this.validateOrder()) {
-      // this.events.emit('order:ready', this.order);
-    }
+    this.events.emit('orderInput:changed', this.order);
   }
   
   validateOrder() {
@@ -125,19 +125,15 @@ export class ProductModel extends Model<IProductModel> {
       errors.address = 'Укажите адрес. ';
     }
     this.formOrderErrors = errors;
-    // this.events.emit('formErrors:change', this.formOrderErrors);
     return Object.keys(errors).length === 0;
   }
   
   setContactsField(field: keyof IInputFormData, value: string) {
     this.order[field] = value;
-    this.events.emit('contacts:changed');
-    if (this.validateOrder()) {
-      // this.events.emit('order:ready', this.order);
-    }
+    this.events.emit('contactsInput:changed');
   }
   
-  validateContacts(){
+  validateContacts() {
     const errors: typeof this.formContactsErrors = {};
     if (!this.order.email) {
       errors.email = 'Укажите почту. ';
@@ -146,11 +142,9 @@ export class ProductModel extends Model<IProductModel> {
       errors.phone = 'Укажите номер телефона. ';
     }
     this.formContactsErrors = errors;
-    // this.events.emit('formErrors:change', this.formContactsErrors);
     return Object.keys(errors).length === 0;
   }
   
- 
   resetOrderForm() {
     this.order.address = '';
     this.order.payment = null;
@@ -166,13 +160,6 @@ export class ProductModel extends Model<IProductModel> {
     this.resetContactsForm();
     this._basket = [];
     this.events.emit('catalogItems:changed');
-  }
-
-  checkNullItemsPost() {
-    const nullPriceItem = this._catalog.find(item => item.price === null);
-    if (nullPriceItem) {
-      (this._basket = this._basket.filter(id => id !== nullPriceItem.id));
-    }
   }
 
 }

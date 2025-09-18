@@ -1,6 +1,10 @@
-import { IBasketItemView, IEvents } from '../../types';
+import { IEvents } from '../../types';
 import { ensureElement } from '../../utils/utils';
 import { CardView } from '../common/CardView';
+
+interface IBasketItemView {
+  itemCounter: number;
+}
 
 export class BasketItemView extends CardView<IBasketItemView> {
   _itemCounter: HTMLSpanElement;
@@ -13,8 +17,8 @@ export class BasketItemView extends CardView<IBasketItemView> {
     
     button.addEventListener('click', () => {
       events.emit('basketItem:delete', {id: this._id});
-      });
-    }
+    });
+  }
 
     set ItemCounter(value: number) {
       value++;

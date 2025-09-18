@@ -7,28 +7,6 @@ export interface IApi {
   post<T>(uri: string, data: object, method: ApiPostMethods): Promise<T>;
 }
 
-
-export interface ICard {
-  id: string;
-  title: string;
-  price: number | null;
-}
-
-export interface IBasketItemView extends ICard {
-  itemCounter: number;
-}
-
-export interface ICardCatalogView extends ICard{
-  image: string;
-  category: string;
-}
-
-export interface ICardPreView extends ICardCatalogView{
-  description: string;
-  inBasket: boolean;
-  isNull: number | null;
-}
-
 export type EventName = string | RegExp;
 
 export interface IEvents {
@@ -37,11 +15,16 @@ export interface IEvents {
   trigger<T extends object>(event: string, context?: Partial<T>): (data: T) => void;
 }
 
-export interface ISuccessActions {
-    onClick: () => void;
-}
-
 export type payment = "card" | "cash" | null;
+
+export interface IProduct {
+  id: string;
+  title: string;
+  price: number | null;
+  image: string;
+  category: string;
+  description: string;
+}
 
 export interface IInputFormData {
   address: string;
@@ -49,3 +32,8 @@ export interface IInputFormData {
   phone: string;
 }
 
+export interface ICustomerData extends IInputFormData {
+  payment: payment;
+}
+
+export interface ICard extends Pick<IProduct, 'id' | 'title' | 'price'> {}

@@ -25,7 +25,6 @@ export class BasketView extends View<IBasketView> {
         events.emit('order:open', {items: this.items, total: this._total});
       });
     }
-
       this.items = [];
     }
         

@@ -1,11 +1,8 @@
-import { IEvents, payment } from "../../types";
+import { IEvents, payment, ICustomerData } from "../../types";
 import { ensureElement } from "../../utils/utils";
 import { Form } from "../common/FormView";
 
-export interface IOrderForm {
-    payment: payment;  
-    address: string;
-}
+interface IOrderForm extends Pick<ICustomerData, 'payment' | 'address'> {}
 
 export class FormOrderView extends Form<IOrderForm> {
   _payment: payment; 
