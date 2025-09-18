@@ -7,19 +7,26 @@ export interface IApi {
   post<T>(uri: string, data: object, method: ApiPostMethods): Promise<T>;
 }
 
-export interface IProduct {
-  id: string;
-  title: string;
-}
 
 export interface ICard {
   id: string;
-  inBasket?: boolean;
-  category: string;
   title: string;
-  description: string;
-  image: string;
   price: number | null;
+}
+
+export interface IBasketItemView extends ICard {
+  itemCounter: number;
+}
+
+export interface ICardCatalogView extends ICard{
+  image: string;
+  category: string;
+}
+
+export interface ICardPreView extends ICardCatalogView{
+  description: string;
+  inBasket: boolean;
+  isNull: number | null;
 }
 
 export type EventName = string | RegExp;
@@ -41,3 +48,4 @@ export interface IInputFormData {
   email: string;
   phone: string;
 }
+

@@ -2,9 +2,7 @@ import { View } from "../base/View";
 import { ICard, IEvents } from "../../types";
 import { ensureElement } from '../../utils/utils';
 
-
-
-export class CardView extends View<ICard> {
+export class CardView<T> extends View<T & ICard> {
   protected _id: string;
   protected _title: HTMLElement;
   protected _price: HTMLElement;
@@ -19,6 +17,10 @@ export class CardView extends View<ICard> {
 
   set id(id: string) {
     this._id = id;
+  }
+
+  get id() {
+    return this._id;
   }
 
   set title(title: string) {

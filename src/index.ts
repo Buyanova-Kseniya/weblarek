@@ -36,7 +36,8 @@ const successTemplate = ensureElement<HTMLTemplateElement>("#success");
 
 const page = new PageView(ensureElement<HTMLTemplateElement>(".page"), events);
 const modal = new ModalView(ensureElement<HTMLDivElement>("#modal-container"), events); 
-const cardsContainer = new CardsContainer(ensureElement<HTMLElement>('.gallery'))
+const cardsContainer = new CardsContainer(ensureElement<HTMLElement>('.gallery'));
+const cardPreView = new CardPreView(cloneTemplate(preViewTemplate), events);
 const cardBasket = new BasketView(cloneTemplate(BasketTemplate), events);
 const formOrder = new FormOrderView(cloneTemplate(formOrderTemplate), events);
 const formContacts = new FormContactsView(cloneTemplate(formContactsTemplate), events);
@@ -156,17 +157,30 @@ events.on('catalogItems:changed', () => {
 })
 
 //работа карточки PreView
-events.on('card:select', (data: {id: string}) => {
-  const cardPreView = new CardPreView(cloneTemplate(preViewTemplate), events);
-  // modal.render({ content: cardPreView.render(productModel.getCatalogItem(data.id)) });
-  modal.render({ content: cardPreView.render(productModel.getCatalogItem(data.id)) });
-})
+events.on('card:select', (data: {title: string, price: number, image: string, category: string, description: string, id: string, }) => {
 
+// const cardPreView = new CardPreView(cloneTemplate(preViewTemplate), events, {onClick: () => {
+//   if (data.price === null) {
+
+//   }
+// }});
+
+modal.render({ content: cardPreView.render({
+  id: data.id,
+  title: data.title, 
+  price: data.price, 
+  image: data.image, 
+  category: data.category,
+  description: data.description, 
+  inBasket: productModel.isBasketItem(data.id),
+  isNull: data.price}),
+});
+})
 
 //работа корзины
 events.on('card:buy', (data: {id: string}) => {
-  productModel.addItemBasket(data.id);
-  productModel.getCatalogItem(data.id).inBasket = true;
+    productModel.addItemBasket(data.id);
+  // productModel.getCatalogItem(data.id).inBasket = true;
   modal.close();
 });
 
@@ -176,14 +190,16 @@ events.on('basket:open', () => {
 
 events.on('basketItem:delete', (data: {id: string} ) => {
   productModel.removeItemBasket(data.id);
-  productModel.getCatalogItem(data.id).inBasket = false;
+  // productModel.getCatalogItem(data.id).inBasket = false;
 });
 
 events.on('basket:changed', () => {
   page.counter = productModel.basket.length;
   const basketItemsArr = productModel.basket.map( (id, index) => {
     const basketItem = new BasketItemView(cloneTemplate(basketItemTemplate), events);
-    basketItem.setItemCounter(index + 1);    
+    basketItem.ItemCounter = index + 1;    
+    basketItem.render(productModel.getCatalogItem(id));   
+    // return basketItem.render(productModel.getCatalogItem(id));
     return basketItem.render(productModel.getCatalogItem(id));
   });
   cardBasket.render({items: basketItemsArr, total: productModel.total});
@@ -239,8 +255,7 @@ events.on('contacts:changed', () => {
 
 //делаем заказ, отправляем на сервер
 events.on('contacts:submit', () => {
-  productModel.checkNullItemsPost();
-
+  
   larekApi.postOrder({
     payment: productModel.payment,
     email: productModel.email,
@@ -249,7 +264,10 @@ events.on('contacts:submit', () => {
     total: productModel.total,
     items: productModel.basket
   })
-  // .then(response => console.log(response))
+  .then(response => {
+    console.log(response)
+    return response;
+  })
   .then(response => {
     modal.render({ content: success.render({description: String(response.total)}) })
     productModel.reset();
